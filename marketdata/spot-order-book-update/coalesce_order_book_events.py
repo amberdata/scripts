@@ -221,7 +221,7 @@ def update_metadata(item, _exchange_metadata):
         elif item["receivedTimestamp"] == _exchange_metadata["min_receivedTimestamp"]:
             _exchange_metadata["min_receivedTimestampNanoseconds"] = min(item["receivedTimestampNanoseconds"], _exchange_metadata["min_receivedTimestampNanoseconds"])         
 
-    except KeyError:
+    except Exception:
         print(f"missing fields {item}", file=sys.stderr)
 
     try:
