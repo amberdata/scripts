@@ -4,18 +4,22 @@ import glob
 import json
 import gzip
 import time
+from datetime import datetime
 
 PAIR = sys.argv[1]
 DATE = sys.argv[2]
 DATA_DIR = sys.argv[3]
 OUTPUT_DIR=sys.argv[4]
 
+# 2021-10-02T00:00:00 UTC
+TIMESTAMP_CUTOFF = 1630540800000
+
 gaps = []
 
 def is_csv_gzip(_file_path):
     return _file_path.endswith("csv.gz")
 
-def convert_line_from_csv_gz(_line):
+def convert_line_from_csv_gz(_line, lastModified):
     [timestamp, timestampNanoseconds, tradeId, price, size, isBuySide] = _line.decode('UTF-8').strip().split(',')
     return {
         "timestamp": int(timestamp),
@@ -24,27 +28,43 @@ def convert_line_from_csv_gz(_line):
         "size": float(size),
         "price": float(price),
         "isBuySide": bool(isBuySide),
+        "lastModified": lastModified,
     }
+
+def get_last_modified(file_path):
+  lastModifiedStr = "-".join(file_path.split('/')[-1].split('.')[0].split('-')[1:])
+  dt = datetime.strptime(lastModifiedStr, "%Y-%m-%d@%H-%M-%S")
+  result = time.mktime(dt.timetuple())
+  return result
+
+def get_corrected_time(timestamp, timestampNanoseconds):
+  if timestamp < TIMESTAMP_CUTOFF and timestamp % 1000 == 0 and timestampNanoseconds >= 1000:
+    microseconds = timestampNanoseconds // 1000
+    _timestamp = timestamp + microseconds
+    _timestampNanoseconds = timestampNanoseconds - microseconds * 1000
+    return (_timestamp, _timestampNanoseconds)
+  return (timestamp, timestampNanoseconds)
+  
+  
 
 def get_grouped_lines(_file_paths):
 
     # each line is a json
     default = [file_path for file_path in _file_paths if not is_csv_gzip(file_path)]
-    default_files = [open(file_path, "r") for file_path in default]
-    default_grouped_lines = [[json.loads(line.strip()) for line in file.readlines()] for file in default_files]
+    default_files = [(open(file_path, "r"), get_last_modified(file_path)) for file_path in default]
+    default_grouped_lines = [[{**json.loads(line.strip()), "lastModified": last_modified} for line in file.readlines()] for (file, last_modified) in default_files]
 
     #gzipped csv files
     gzipped = [file_path for file_path in _file_paths if is_csv_gzip(file_path)]
-    gzipped_files = [gzip.open(file_path, 'rb') for file_path in gzipped]
-    gzipped_grouped_lines = [[convert_line_from_csv_gz(line) for line in file.readlines()] for file in gzipped_files]
+    gzipped_files = [(gzip.open(file_path, 'rb'), get_last_modified(file_path))  for file_path in gzipped]
+    gzipped_grouped_lines = [[convert_line_from_csv_gz(line, last_modified) for line in file.readlines()] for (file, last_modified) in gzipped_files]
 
-    for file in default_files + gzipped_files:
+    for (file, _) in default_files + gzipped_files:
         file.close()
 
     return default_grouped_lines + gzipped_grouped_lines
 
-
-def process_exchange(_exchange, _file_paths):
+def process_exchange(_exchange, hr, _file_paths):
 
     grouped_lines = get_grouped_lines(_file_paths)
 
@@ -54,17 +74,19 @@ def process_exchange(_exchange, _file_paths):
         for line in group:
             line["exchange"] = _exchange
             line["pair"] = PAIR
+            (line["timestamp"], line["timestampNanoseconds"]) = get_corrected_time(line["timestamp"], line["timestampNanoseconds"])
             lines.append(line)
 
-    lines.sort(key = lambda item : get_key(item))
+    lines.sort(key = lambda item : get_sort_key(item))
 
-    return process_lines(_exchange, PAIR, lines)
+    return process_lines(_exchange, hr, PAIR, lines)
 
-def process_lines(_exchange, _pair, _lines):
+def process_lines(_exchange, hr, _pair, _lines):
     
     exchange_metadata = {
         "exchange": _exchange,
         "pair": _pair,
+        "hour": hr,
         # Defaults that will be updated as we process lines:
         "num_records": 0,
         "min_timestamp": sys.maxsize,
@@ -83,18 +105,19 @@ def process_lines(_exchange, _pair, _lines):
     # initalize previous.
     prev_item = None; prev_item_key = None; prev_item_value = None;
 
-    o_path = f"{OUTPUT_DIR}/{_exchange}"
+    o_path = f"{OUTPUT_DIR}/{_exchange}-{hr}.csv"
 
     with open(o_path, "w") as o:
         for i in range(0, len(_lines)):
-
             item = _lines[i]; item_key = get_key(item); item_value = get_value(item);
+
+            item.pop("lastModified")
 
             if prev_item_key == item_key:
                 if prev_item_value != item_value:
-                    print(f"ERROR: duplicate item {item_key} with different values {prev_item_value} {item_value}", file=sys.stderr)
+                    print(f"DUPLICATE DIFFERENT item {item_key} with different values {prev_item_value} {item_value}", file=sys.stderr)
                 else:
-                    print(f"duplicate item {item_key}")
+                    print(f"DUPLICATE SAME item {item_key}")
             else:
                 o.write(f"{json.dumps(item, separators=(',', ':'))}\n")
                 # increment num_records only for non-duplicates
@@ -133,6 +156,8 @@ def get_key(item):
 
     return tuple([item[item_key] if item_key in item else None for item_key in item_keys])
 
+def get_sort_key(item):
+  return tuple(list(get_key(item)) + [-1 * item["lastModified"]])
 
 def get_value(item):
     item_values = ["price", "size"]
@@ -167,7 +192,7 @@ def update_metadata(item, _exchange_metadata):
         elif item["timestamp"] == _exchange_metadata["min_timestamp"]:
             _exchange_metadata["min_timestampNanoseconds"] = min(item["timestampNanoseconds"], _exchange_metadata["min_timestampNanoseconds"])
 
-    except KeyError(e):
+    except Exception(e):
         print(f"missing price or isBuySide {item}", file=sys.stderr)
 
     try:
@@ -176,9 +201,14 @@ def update_metadata(item, _exchange_metadata):
     except:
         pass
 
-def get_exchanges():
+def get_str_hour(hr):
+    if hr < 10:
+        return f"0{hr}"
+    return str(hr)
 
-    files = glob.glob(f"{DATA_DIR}/*/*")
+def get_exchanges(str_hr):
+
+    files = glob.glob(f"{DATA_DIR}/{str_hr}/*")
 
     return sorted(list(set([file.split("/")[-1].split("-")[0] for file in files])))
 
@@ -186,15 +216,24 @@ if __name__ == "__main__":
 
     metadata = []
 
-    exchanges = get_exchanges()
+    for hr in range(24):
 
-    for exchange in exchanges:
+        str_hr = get_str_hour(hr)
 
-        files = glob.glob(f"{DATA_DIR}/*/{exchange}*")
+        exchanges = get_exchanges(str_hr)
 
-        processed_exchange_metadata = process_exchange(exchange, files)
+        print(f"HOUR: {str_hr} EXCHANGES: {exchanges}")
 
-        metadata.append(processed_exchange_metadata)
+        for exchange in exchanges:
+
+            files = glob.glob(f"{DATA_DIR}/{str_hr}/{exchange}*")
+
+            if not files:
+                continue
+
+            processed_exchange_metadata = process_exchange(exchange, str_hr, files)
+
+            metadata.append(processed_exchange_metadata)
 
     if len(gaps) > 0:
         # Sort gaps by exchange, gap size (DESC)

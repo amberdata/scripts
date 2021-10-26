@@ -7,7 +7,7 @@ PAIR=$1
 DATE=$2
 IGNORE_SUCCESS=$3
 
-S3_DIR="s3://amberdata-marketdata/spot-trade/$DATE/$PAIR"
+S3_DIR="s3://amberdata-marketdata/spot-trade_v2/$DATE/$PAIR"
 
 ####################################################################################
 
@@ -120,7 +120,7 @@ echo " REMOVING DOWNLOADED AND COALESCED FILES..."
 
 start=`date +%s.%N`
 
-rm -rf "${DATA_DIR}" && rm -rf "${OUTPUT_DIR}"
+rm -rf "${TMP_DIR}"
 
 end=`date +%s.%N`
 
