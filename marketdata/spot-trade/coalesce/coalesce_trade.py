@@ -33,9 +33,11 @@ def convert_line_from_csv_gz(_line, lastModified):
 
 def get_last_modified(file_path):
   lastModifiedStr = "-".join(file_path.split('/')[-1].split('.')[0].split('-')[1:])
-  dt = datetime.strptime(lastModifiedStr, "%Y-%m-%d@%H-%M-%S")
-  result = time.mktime(dt.timetuple())
-  return result
+  try:
+    dt = datetime.strptime(lastModifiedStr, "%Y-%m-%d@%H-%M-%S")
+    return time.mktime(dt.timetuple())
+  except Exception:
+    return 0
 
 def get_corrected_time(timestamp, timestampNanoseconds):
   if timestamp < TIMESTAMP_CUTOFF and timestamp % 1000 == 0 and timestampNanoseconds >= 1000:
@@ -105,7 +107,7 @@ def process_lines(_exchange, hr, _pair, _lines):
     # initalize previous.
     prev_item = None; prev_item_key = None; prev_item_value = None;
 
-    o_path = f"{OUTPUT_DIR}/{_exchange}-{hr}.csv"
+    o_path = f"{OUTPUT_DIR}/{_exchange}-{hr}"
 
     with open(o_path, "w") as o:
         for i in range(0, len(_lines)):
