@@ -28,7 +28,6 @@ def is_csv_gzip(_file_path):
     return _file_path.endswith("csv.gz")
 
 def try_load_csv_gz_file(file):
-  # [convert_line_from_csv_gz(line) for line in file.readlines()]
   result = []
   for line in file.readlines():
     try:

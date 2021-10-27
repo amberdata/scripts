@@ -19,7 +19,17 @@ gaps = []
 def is_csv_gzip(_file_path):
     return _file_path.endswith("csv.gz")
 
-def convert_line_from_csv_gz(_line, lastModified):
+def try_load_csv_gz_file(file, last_modified):
+  result = []
+  for line in file.readlines():
+    try:
+      result.append(convert_line_from_csv_gz(line, last_modified))
+    except Exception as e:
+      print(f"Failures in try_load_csv_gz_file: {e}", file=sys.stderr)
+  return result
+
+
+def convert_line_from_csv_gz(_line, last_modified):
     [timestamp, timestampNanoseconds, tradeId, price, size, isBuySide] = _line.decode('UTF-8').strip().split(',')
     return {
         "timestamp": int(timestamp),
@@ -28,8 +38,18 @@ def convert_line_from_csv_gz(_line, lastModified):
         "size": float(size),
         "price": float(price),
         "isBuySide": bool(isBuySide),
-        "lastModified": lastModified,
+        "lastModified": last_modified,
     }
+
+def try_load_json_file(file, last_modified):
+  lines = file.readlines()
+  result = []
+  for line in lines:
+    try:
+      result.append({**json.loads(line.strip()), "lastModified": last_modified})
+    except Exception as e:
+      print(f"Failures in try_load_json_file: {e}", file=sys.stderr)
+  return result
 
 def get_last_modified(file_path):
   lastModifiedStr = "-".join(file_path.split('/')[-1].split('.')[0].split('-')[1:])
@@ -54,12 +74,12 @@ def get_grouped_lines(_file_paths):
     # each line is a json
     default = [file_path for file_path in _file_paths if not is_csv_gzip(file_path)]
     default_files = [(open(file_path, "r"), get_last_modified(file_path)) for file_path in default]
-    default_grouped_lines = [[{**json.loads(line.strip()), "lastModified": last_modified} for line in file.readlines()] for (file, last_modified) in default_files]
+    default_grouped_lines = [try_load_json_file(file, last_modified) for (file, last_modified) in default_files]
 
     #gzipped csv files
     gzipped = [file_path for file_path in _file_paths if is_csv_gzip(file_path)]
     gzipped_files = [(gzip.open(file_path, 'rb'), get_last_modified(file_path))  for file_path in gzipped]
-    gzipped_grouped_lines = [[convert_line_from_csv_gz(line, last_modified) for line in file.readlines()] for (file, last_modified) in gzipped_files]
+    gzipped_grouped_lines = [try_load_csv_gz_file(file, last_modified) for (file, last_modified) in gzipped_files]
 
     for (file, _) in default_files + gzipped_files:
         file.close()
