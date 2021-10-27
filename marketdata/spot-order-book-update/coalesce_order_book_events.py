@@ -27,6 +27,16 @@ OUTPUT_DIR=sys.argv[4]
 def is_csv_gzip(_file_path):
     return _file_path.endswith("csv.gz")
 
+def try_load_csv_gz_file(file):
+  # [convert_line_from_csv_gz(line) for line in file.readlines()]
+  result = []
+  for line in file.readlines():
+    try:
+      result.append(convert_line_from_csv_gz(line))
+    except Exception as e:
+      print(f"Failures in try_load_csv_gz_file: {e}", file=sys.stderr)
+  return result
+
 def convert_line_from_csv_gz(_line):
     [exchangeTimestamp, exchangeTimestampNanoseconds, isBid, data, receivedTimestamp, receivedTimestampNanoseconds] = _line.decode('UTF-8').strip().split(';')
     return {
@@ -39,17 +49,27 @@ def convert_line_from_csv_gz(_line):
         "metadata": None,
     }
 
+def try_load_json_file(file):
+  lines = file.readlines()
+  result = []
+  for line in lines:
+    try:
+      result.append(json.loads(line.strip()))
+    except Exception as e:
+      print(f"Failures in try_load_json_file: {e}", file=sys.stderr)
+  return result
+
 def get_grouped_lines(_file_paths):
 
     # each line is a json
     default = [file_path for file_path in _file_paths if not is_csv_gzip(file_path)]
     default_files = [open(file_path, "r") for file_path in default]
-    default_grouped_lines = [[json.loads(line.strip()) for line in file.readlines()] for file in default_files]
+    default_grouped_lines = [try_load_json_file(file) for file in default_files]
 
     #gzipped csv files
     gzipped = [file_path for file_path in _file_paths if is_csv_gzip(file_path)]
     gzipped_files = [gzip.open(file_path, 'rb') for file_path in gzipped]
-    gzipped_grouped_lines = [[convert_line_from_csv_gz(line) for line in file.readlines()] for file in gzipped_files]
+    gzipped_grouped_lines = [try_load_csv_gz_file(file) for file in gzipped_files]
 
     for file in default_files + gzipped_files:
         file.close()

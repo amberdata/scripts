@@ -194,8 +194,8 @@ def update_metadata(item, _exchange_metadata):
         elif item["timestamp"] == _exchange_metadata["min_timestamp"]:
             _exchange_metadata["min_timestampNanoseconds"] = min(item["timestampNanoseconds"], _exchange_metadata["min_timestampNanoseconds"])
 
-    except Exception(e):
-        print(f"missing price or isBuySide {item}", file=sys.stderr)
+    except Exception as e:
+        print(f"missing price or isBuySide {item} {e}", file=sys.stderr)
 
     try:
         _exchange_metadata["max_trade_id"] = max(item["tradeId"], _exchange_metadata["max_trade_id"])
