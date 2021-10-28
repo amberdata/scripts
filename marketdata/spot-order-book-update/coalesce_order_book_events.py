@@ -158,14 +158,14 @@ def sanitize_metadata(_metadata):
     return {k:v for (k,v) in _metadata.items() if v != -1 and v != sys.maxsize}
 
 def get_key(item):
-    item_keys = ["pair", "exchange", "exchangeTimestamp", "exchangeTimestampNanoseconds", "isBid"]
+    item_keys = [("pair", ""), ("exchange", ""), ("exchangeTimestamp", 0), ("exchangeTimestampNanoseconds", 0), ("isBid", True)]
 
     for item_key in item_keys:
         if item_key not in item:
             print(f"ERROR: missing price or size {item}", file=sys.stderr)
             break
 
-    return tuple([item[item_key] if item_key in item else None for item_key in item_keys])
+    return tuple([item[item_key] if item_key in item and item[item_key] else default for (item_key, default) in item_keys])
 
 
 def get_value(item):
