@@ -96,7 +96,10 @@ def process_exchange(_exchange, hr, _file_paths):
         for line in group:
             line["exchange"] = _exchange
             line["pair"] = PAIR
-            (line["timestamp"], line["timestampNanoseconds"]) = get_corrected_time(line["timestamp"], line["timestampNanoseconds"])
+            try:
+             (line["timestamp"], line["timestampNanoseconds"]) = get_corrected_time(line["timestamp"], line["timestampNanoseconds"])
+            except Exception as e:
+              pass
             lines.append(line)
 
     lines.sort(key = lambda item : get_sort_key(item))
