@@ -172,17 +172,19 @@ def find_gap(prev_item, item, _exchange):
             ])
 
 def get_key(item):
-    item_keys = ["pair", "exchange", "timestamp", "timestampNanoseconds", "tradeId", "isBuySide"]
+    item_keys = [("pair", ""), ("exchange", ""), ("timestamp", 0), ("timestampNanoseconds", 0), ("tradeId", 0), ("isBuySide", True)]
 
-    for item_key in item_keys:
+    for (item_key, _) in item_keys:
         if item_key not in item:
             print(f"ERROR: missing price or size {item}", file=sys.stderr)
             break
 
-    return tuple([item[item_key] if item_key in item else None for item_key in item_keys])
+    return tuple([item[item_key] if item_key in item and item[item_key] else default for (item_key, default) in item_keys])
 
 def get_sort_key(item):
-  return tuple(list(get_key(item)) + [-1 * item["lastModified"]])
+  result = tuple(list(get_key(item)) + [-1 * item["lastModified"]])
+  print(f"RESULT {result}")
+  return result
 
 def get_value(item):
     item_values = ["price", "size"]
