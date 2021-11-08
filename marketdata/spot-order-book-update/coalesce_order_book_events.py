@@ -160,7 +160,7 @@ def sanitize_metadata(_metadata):
 def get_key(item):
     item_keys = [("pair", ""), ("exchange", ""), ("exchangeTimestamp", 0), ("exchangeTimestampNanoseconds", 0), ("isBid", True)]
 
-    for item_key in item_keys:
+    for (item_key, _) in item_keys:
         if item_key not in item:
             print(f"ERROR: missing price or size {item}", file=sys.stderr)
             break
