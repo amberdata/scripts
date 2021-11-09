@@ -18,6 +18,6 @@ DATES=( $(
   done
 ) )
 
-parallel ./sync_dt {} $SOURCE $DEST ::: ${DATES[@]}
+parallel ./sync_dt.sh {} $SOURCE $DEST ::: ${DATES[@]}
 
 ####################################################################################
