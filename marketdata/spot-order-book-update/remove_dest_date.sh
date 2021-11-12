@@ -4,5 +4,5 @@
 BASE_PATH=$1
 DATE=$2
 
-echo "${BASE_PATH}/${DATE}"
+aws s3 rm --recursive "${BASE_PATH}/${DATE}"
 
