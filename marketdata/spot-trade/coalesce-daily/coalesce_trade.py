@@ -59,12 +59,12 @@ def get_grouped_lines(_file_paths):
 
     # each line is a json
     default = [file_path for file_path in _file_paths if not is_csv_gzip(file_path)]
-    default_files = [(open(file_path, "r"), get_last_modified(file_path)) for file_path in default]
+    default_files = [(open(file_path, "r"), get_file_name(file_path)) for file_path in default]
     default_grouped_lines = [try_load_json_file(file, last_modified) for (file, last_modified) in default_files]
 
     #gzipped csv files
     gzipped = [file_path for file_path in _file_paths if is_csv_gzip(file_path)]
-    gzipped_files = [(gzip.open(file_path, 'rb'), get_last_modified(file_path))  for file_path in gzipped]
+    gzipped_files = [(gzip.open(file_path, 'rb'), get_file_name(file_path))  for file_path in gzipped]
     gzipped_grouped_lines = [try_load_csv_gz_file(file, last_modified) for (file, last_modified) in gzipped_files]
 
     for (file, _) in default_files + gzipped_files:
