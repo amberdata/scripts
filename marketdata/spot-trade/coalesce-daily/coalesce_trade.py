@@ -51,9 +51,9 @@ def try_load_json_file(file, last_modified):
       print(f"Failures in try_load_json_file: {e}", file=sys.stderr)
   return result
 
-def get_last_modified(file_path):
-  lastModifiedStr = "-".join(file_path.split('/')[-1].split('.')[0].split('-')[1:])
-  return lastModifiedStr
+def get_file_name(file_path):
+  file_name = file_path.split('/')[-1].split('.')[0]
+  return file_name
   
 def get_grouped_lines(_file_paths):
 
