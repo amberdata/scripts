@@ -88,7 +88,7 @@ def process_exchange(_exchange, _file_paths):
 
 def write_lines(_exchange, _lines):
 
-    o_path = f"{OUTPUT_DIR}/{_exchange}.json"
+    o_path = f"{OUTPUT_DIR}/{_exchange}"
 
     with open(o_path, "w") as o:
         for i in range(0, len(_lines)):

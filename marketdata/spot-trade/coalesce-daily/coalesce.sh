@@ -106,8 +106,6 @@ DEST="${S3_DIR}/"
 
 aws s3 sync "${SOURCE}" "${DEST}" >> "${OUT}" 2>> "${ERR}"
 
-echo "" >> "${OUT}" && echo "" >> "${ERR}"
-
 end=`date +%s.%N`
 
 runtime=$( echo "$end - $start" | bc -l )
