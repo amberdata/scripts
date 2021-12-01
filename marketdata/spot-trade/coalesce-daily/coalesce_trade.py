@@ -53,11 +53,7 @@ def try_load_json_file(file, last_modified):
 
 def get_last_modified(file_path):
   lastModifiedStr = "-".join(file_path.split('/')[-1].split('.')[0].split('-')[1:])
-  try:
-    dt = datetime.strptime(lastModifiedStr, "%Y-%m-%d@%H-%M-%S")
-    return time.mktime(dt.timetuple())
-  except Exception:
-    return 0
+  return lastModifiedStr
   
 def get_grouped_lines(_file_paths):
 
