@@ -38,7 +38,7 @@ def convert_line_from_csv_gz(_line, last_modified):
         "size": float(size),
         "price": float(price),
         "isBuySide": bool(isBuySide),
-        "lastModified": last_modified,
+        "fileName": last_modified,
     }
 
 def try_load_json_file(file, last_modified):
@@ -46,7 +46,7 @@ def try_load_json_file(file, last_modified):
   result = []
   for line in lines:
     try:
-      result.append({**json.loads(line.strip()), "lastModified": last_modified})
+      result.append({**json.loads(line.strip()), "fileName": last_modified})
     except Exception as e:
       print(f"Failures in try_load_json_file: {e}", file=sys.stderr)
   return result
