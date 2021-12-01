@@ -77,24 +77,14 @@ def process_exchange(_exchange, _file_paths):
 
     grouped_lines = get_grouped_lines(_file_paths)
 
-    lines = []
-
-    for group in grouped_lines:
-        for line in group:
-            line["exchange"] = _exchange
-            line["pair"] = PAIR
-            lines.append(line)
-
-    write_lines(_exchange, lines)
-
-def write_lines(_exchange, _lines):
-
     o_path = f"{OUTPUT_DIR}/{_exchange}"
 
     with open(o_path, "w") as o:
-        for i in range(0, len(_lines)):
-            item = _lines[i]
-            o.write(f"{json.dumps(item, separators=(',', ':'))}\n")
+      for group in grouped_lines:
+          for line in group:
+              line["exchange"] = _exchange
+              line["pair"] = PAIR
+              o.write(f"{json.dumps(line, separators=(',', ':'))}\n")
 
 def get_exchanges():
 
