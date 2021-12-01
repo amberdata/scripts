@@ -48,7 +48,7 @@ def try_load_json_file(file, last_modified):
     try:
       result.append({**json.loads(line.strip()), "fileName": last_modified})
     except Exception as e:
-      print(f"Failures in try_load_json_file: {e}", file=sys.stderr)
+      print(f"Failures in try_load_json_file:\n\t{e}\n\t{line}", file=sys.stderr)
   return result
 
 def get_file_name(file_path):
