@@ -1,35 +1,13 @@
-import os
 import sys
 import glob
 import json
 import gzip
 import time
-from datetime import datetime
-
-PAIR = sys.argv[1]
-DATE = sys.argv[2]
-DATA_DIR = sys.argv[3]
-OUTPUT_DIR=sys.argv[4]
-
-# 2021-10-02T00:00:00 UTC
-TIMESTAMP_CUTOFF = 1630540800000
-
-gaps = []
 
 def is_csv_gzip(_file_path):
     return _file_path.endswith("csv.gz")
 
-def try_load_csv_gz_file(file, last_modified):
-  result = []
-  for line in file.readlines():
-    try:
-      result.append(convert_line_from_csv_gz(line, last_modified))
-    except Exception as e:
-      print(f"Failures in try_load_csv_gz_file: {e}", file=sys.stderr)
-  return result
-
-
-def convert_line_from_csv_gz(_line, last_modified):
+def convert_line_from_csv_gz(_line, file_path):
     [timestamp, timestampNanoseconds, tradeId, price, size, isBuySide] = _line.decode('UTF-8').strip().split(',')
     return {
         "timestamp": int(timestamp),
@@ -38,72 +16,53 @@ def convert_line_from_csv_gz(_line, last_modified):
         "size": float(size),
         "price": float(price),
         "isBuySide": bool(isBuySide),
-        "fileName": last_modified,
+        "filePath": file_path,
     }
 
-def try_load_json_file(file, last_modified):
-  lines = file.readlines()
-  result = []
-  for line in lines:
-    try:
-      result.append({**json.loads(line.strip()), "fileName": last_modified})
-    except Exception as e:
-      print(f"line: {line}\n")
-      print(f"Failures in try_load_json_file: {e}", file=sys.stderr)
-  return result
+def process_pair_day(output_path, file_paths):
 
-def get_file_name(file_path):
-  file_name = file_path.split('/')[-1].split('.')[0]
-  return file_name
-  
-def get_grouped_lines(_file_paths):
-
-    # each line is a json
-    default = [file_path for file_path in _file_paths if not is_csv_gzip(file_path)]
-    default_files = [(open(file_path, "r"), get_file_name(file_path)) for file_path in default]
-    default_grouped_lines = [try_load_json_file(file, last_modified) for (file, last_modified) in default_files]
-
-    #gzipped csv files
-    gzipped = [file_path for file_path in _file_paths if is_csv_gzip(file_path)]
-    gzipped_files = [(gzip.open(file_path, 'rb'), get_file_name(file_path))  for file_path in gzipped]
-    gzipped_grouped_lines = [try_load_csv_gz_file(file, last_modified) for (file, last_modified) in gzipped_files]
-
-    for (file, _) in default_files + gzipped_files:
-        file.close()
-
-    return default_grouped_lines + gzipped_grouped_lines
-
-def process_exchange(_exchange, _file_paths):
-
-    grouped_lines = get_grouped_lines(_file_paths)
-
-    o_path = f"{OUTPUT_DIR}/{_exchange}"
+    o_path = f"{output_path}/out"
 
     with open(o_path, "w") as o:
-      for group in grouped_lines:
-          for line in group:
-              line["exchange"] = _exchange
-              line["pair"] = PAIR
-              o.write(f"{json.dumps(line, separators=(',', ':'))}\n")
 
-def get_exchanges():
+      json_paths = [file_path for file_path in file_paths if not is_csv_gzip(file_path)]
 
-    files = glob.glob(f"{DATA_DIR}/*/*")
+      for json_path in json_paths:
+        with open(json_path, 'r') as f:
+          for i, line in enumerate(f):
+            try:
+              result = {**json.loads(line.strip()), "filePath": json_path}
+              o.write(f"{json.dumps(result, separators=(',', ':'))}\n")
+            except Exception as e:
+              print(f"{json_path} line: {i} failed\n", file=sys.stderr)
 
-    return sorted(list(set([file.split("/")[-1].split("-")[0] for file in files])))
+      csv_gz_paths = [file_path for file_path in file_paths if is_csv_gzip(file_path)]
+
+      for csv_gz_path in csv_gz_paths:
+        with gzip.open(csv_gz_path, 'rb') as f:
+          for i, line in enumerate(f):
+            try:
+              result = convert_line_from_csv_gz(line, csv_gz_path)
+              o.write(f"{json.dumps(result, separators=(',', ':'))}\n")
+            except Exception as e:
+              print(f"{csv_gz_path} line: {i} failed\n", file=sys.stderr)
 
 if __name__ == "__main__":
 
-    metadata = []
+    PAIR = sys.argv[1]
+    DATE = sys.argv[2]
+    DATA_DIR = sys.argv[3]
+    OUTPUT_DIR=sys.argv[4]
 
-    exchanges = get_exchanges()
+    start = int(time.time())
 
-    for exchange in exchanges:
+    output_path = f"{OUTPUT_DIR}/{DATE}/{PAIR}"
+    file_paths = glob.glob(f"{DATA_DIR}/*/*")
 
-        files = glob.glob(f"{DATA_DIR}/*/{exchange}*")
+    process_pair_day(output_path, file_paths)
 
-        process_exchange(exchange, files)
+    end = int(time.time())
 
-    with open(f"{OUTPUT_DIR}/_SUCCESS", "w") as f:
-        f.write(f"coalesce completed: {int(time.time())}\n")
+    with open(f"{output_path}/_SUCCESS", "w") as f:
+        f.write(f"time: {end-start}\n")
 

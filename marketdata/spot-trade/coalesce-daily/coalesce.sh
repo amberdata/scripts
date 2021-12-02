@@ -7,7 +7,7 @@ PAIR=$1
 DATE=$2
 IGNORE_SUCCESS=$3
 
-S3_DIR="s3://amberdata-shar/spot-trade/$DATE/$PAIR"
+S3_DIR="s3://amberdata-shar/spot-trade-v2/$DATE/$PAIR"
 
 ####################################################################################
 
