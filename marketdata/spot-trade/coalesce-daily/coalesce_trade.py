@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     start = int(time.time())
 
-    output_path = f"{OUTPUT_DIR}/{DATE}/{PAIR}"
+    output_path = f"{OUTPUT_DIR}/"
     file_paths = glob.glob(f"{DATA_DIR}/*/*")
 
     process_pair_day(output_path, file_paths)
