@@ -35,8 +35,8 @@ def process_pair_day(output_path, file_paths):
               o.write(f"{json.dumps(result, separators=(',', ':'))}\n")
             except Exception as e:
               print(f"file: {json_path}", file=sys.stderr)
-              print(f"line_index: {i}")
-              print(f"line: {line}")
+              print(f"line_index: {i}", file=sys.stderr)
+              print(f"line: {line}", file=sys.stderr)
 
       csv_gz_paths = [file_path for file_path in file_paths if is_csv_gzip(file_path)]
 
@@ -48,8 +48,8 @@ def process_pair_day(output_path, file_paths):
               o.write(f"{json.dumps(result, separators=(',', ':'))}\n")
             except Exception as e:
               print(f"file: {csv_gz_path}", file=sys.stderr)
-              print(f"line_index: {i}")
-              print(f"line: {line}")
+              print(f"line_index: {i}", file=sys.stderr)
+              print(f"line: {line}", file=sys.stderr)
 
 if __name__ == "__main__":
 
