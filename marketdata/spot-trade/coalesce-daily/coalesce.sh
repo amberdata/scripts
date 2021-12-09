@@ -30,12 +30,14 @@ fi
 
 ####################################################################################
 
+# Adjust this path. Root path where all tmp files are stored.
 TMP_DIR="/data/shar/coalesce_files/tmp/$DATE/$PAIR"
 OUT="$TMP_DIR/_OUT"
 ERR="$TMP_DIR/_ERR"
-FILES="$TMP_DIR/s3.out.files"
-S3_OUT="$TMP_DIR/s3.out"
+
+# Downloaded input files are stored here.
 DATA_DIR="$TMP_DIR/data"
+# Coalesced output files are stored here.
 OUTPUT_DIR="$TMP_DIR/output"
 
 ####################################################################################
