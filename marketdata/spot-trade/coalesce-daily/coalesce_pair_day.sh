@@ -12,6 +12,7 @@ END_DATE=$5
 
 aws s3 ls s3://amberdata-marketdata/trade/ | sed -e 's# *PRE \([^/]*\)/#\1#' | sort | while read -r PAIR
 do
+  # Filter pairs outside of range
   if [[ "${PAIR}" < "${START_PAIR}" ]];
   then
     continue
