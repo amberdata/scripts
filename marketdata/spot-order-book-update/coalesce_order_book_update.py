@@ -37,6 +37,7 @@ def process_pair_day(output_path, file_paths):
               print(f"file: {json_path}", file=sys.stderr)
               print(f"line_index: {i}", file=sys.stderr)
               print(f"line: {line}", file=sys.stderr)
+              print(f"err: {e}", file=sys.stderr)
 
       csv_gz_paths = [file_path for file_path in file_paths if is_csv_gzip(file_path)]
 
@@ -50,6 +51,7 @@ def process_pair_day(output_path, file_paths):
               print(f"file: {csv_gz_path}", file=sys.stderr)
               print(f"line_index: {i}", file=sys.stderr)
               print(f"line: {line}", file=sys.stderr)
+              print(f"err: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
 
