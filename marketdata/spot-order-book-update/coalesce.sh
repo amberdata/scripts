@@ -53,7 +53,7 @@ echo " DOWNLOADING FILES..."
 
 start=`date +%s.%N`
 
-SOURCE="s3://amberdata-marketdata/trade/$PAIR/$DATE/"
+SOURCE="s3://amberdata-marketdata/order_book_update/$PAIR/$DATE/"
 DEST="${DATA_DIR}/"
 
 aws s3 sync "${SOURCE}" "${DEST}" >> "${OUT}" 2>> "${ERR}"
