@@ -7,7 +7,8 @@ PAIR=$1
 DATE=$2
 IGNORE_SUCCESS=$3
 
-S3_DIR="s3://amberdata-shar/spot-trade-daily/$DATE/$PAIR"
+# Output coalesced data path. Adjust if needed.
+S3_DIR="s3://amberdata-shar/spot-trade-daily_v2/$DATE/$PAIR"
 
 ####################################################################################
 
@@ -30,7 +31,7 @@ fi
 
 ####################################################################################
 
-# Adjust this path. Root path where all tmp files are stored.
+# Adjust this path. Local root path where all tmp files are stored.
 TMP_DIR="/data/shar/coalesce_files/tmp/$DATE/$PAIR"
 OUT="$TMP_DIR/_OUT"
 ERR="$TMP_DIR/_ERR"
