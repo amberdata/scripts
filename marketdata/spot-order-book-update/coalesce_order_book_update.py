@@ -45,7 +45,7 @@ def process_pair_day(output_path, file_paths):
         with gzip.open(csv_gz_path, 'rb') as f:
           for i, line in enumerate(f):
             try:
-              result = convert_line_from_csv_gz(line, csv_gz_path)
+              result = convert_line_from_csv_gz(line)
               o.write(f"{json.dumps(result, separators=(',', ':'))}\n")
             except Exception as e:
               print(f"file: {csv_gz_path}", file=sys.stderr)
