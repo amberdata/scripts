@@ -70,7 +70,7 @@ echo " COALESCING FILES..."
 
 start=`date +%s.%N`
 
-python3 coalesce_trade.py "${PAIR}" "${DATE}" "${DATA_DIR}" "${OUTPUT_DIR}" >> "${OUT}" 2>> "${ERR}"
+python3 coalesce_order_book_update.py "${PAIR}" "${DATE}" "${DATA_DIR}" "${OUTPUT_DIR}" >> "${OUT}" 2>> "${ERR}"
 
 echo "" >> "${OUT}" && echo "" >> "${ERR}"
 
