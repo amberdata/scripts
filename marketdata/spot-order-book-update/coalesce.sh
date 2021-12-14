@@ -7,11 +7,12 @@ PAIR=$1
 DATE=$2
 IGNORE_SUCCESS=$3
 
-S3_DIR="s3://amberdata-marketdata/spot-order-book-update/$DATE/$PAIR"
+# Output coalesced data path. Adjust if needed.
+S3_DIR="s3://amberdata-shar/spot-order-book-update-daily/$DATE/$PAIR"
 
 ####################################################################################
 
-echo "$PAIR $DATE"
+echo "$PAIR $DATE $IGNORE_SUCCESS"
 
 ####################################################################################
 
@@ -30,12 +31,14 @@ fi
 
 ####################################################################################
 
-TMP_DIR="./spot-order-book-update/$DATE/$PAIR"
+# Adjust this path. Local root path where all tmp files are stored.
+TMP_DIR="/data/shar/spot-order-book-update-daily/tmp/$DATE/$PAIR"
 OUT="$TMP_DIR/_OUT"
 ERR="$TMP_DIR/_ERR"
-FILES="$TMP_DIR/s3.out.files"
-S3_OUT="$TMP_DIR/s3.out"
+
+# Downloaded input files are stored here.
 DATA_DIR="$TMP_DIR/data"
+# Coalesced output files are stored here.
 OUTPUT_DIR="$TMP_DIR/output"
 
 ####################################################################################
@@ -50,7 +53,7 @@ echo " DOWNLOADING FILES..."
 
 start=`date +%s.%N`
 
-SOURCE="s3://amberdata-marketdata/order_book_update/$PAIR/$DATE/"
+SOURCE="s3://amberdata-marketdata/trade/$PAIR/$DATE/"
 DEST="${DATA_DIR}/"
 
 aws s3 sync "${SOURCE}" "${DEST}" >> "${OUT}" 2>> "${ERR}"
@@ -67,7 +70,7 @@ echo " COALESCING FILES..."
 
 start=`date +%s.%N`
 
-python3 coalesce_order_book_events.py "${PAIR}" "${DATE}" "${DATA_DIR}" "${OUTPUT_DIR}" >> "${OUT}" 2>> "${ERR}"
+python3 coalesce_trade.py "${PAIR}" "${DATE}" "${DATA_DIR}" "${OUTPUT_DIR}" >> "${OUT}" 2>> "${ERR}"
 
 echo "" >> "${OUT}" && echo "" >> "${ERR}"
 
@@ -105,8 +108,6 @@ SOURCE=$OUTPUT_DIR
 DEST="${S3_DIR}/"
 
 aws s3 sync "${SOURCE}" "${DEST}" >> "${OUT}" 2>> "${ERR}"
-
-echo "" >> "${OUT}" && echo "" >> "${ERR}"
 
 end=`date +%s.%N`
 
