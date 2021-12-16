@@ -10,22 +10,21 @@ END_DATE=$5
 
 ####################################################################################
 
-aws s3 ls s3://amberdata-marketdata/trade/ | sed -e 's# *PRE \([^/]*\)/#\1#' | sort | while read -r PAIR
+DATA_PATH="s3://amberdata-marketdata/trade"
+
+####################################################################################
+
+aws s3 ls "${DATA_PATH}/" | sed -e 's# *PRE \([^/]*\)/#\1#' | sort | while read -r PAIR
 do
   # Filter pairs outside of range
-  if [[ "${PAIR}" < "${START_PAIR}" ]];
-  then
-    continue
-  fi
-
-  if [[ "${PAIR}" > "${END_PAIR}" ]];
+  if [[ "${PAIR}" < "${START_PAIR}" ]] || [[ "${PAIR}" > "${END_PAIR}" ]];
   then
     continue
   fi
 
   start=`date +%s.%N`
 
-  DATES_PATH="s3://amberdata-marketdata/trade/${PAIR}/"
+  DATES_PATH="${DATA_PATH}/${PAIR}/"
 
   DATES=( $(
     aws s3 ls "${DATES_PATH}" | awk '{ print $2 }' | sed 's/.$//' | sort -n -r | while read -r dt
