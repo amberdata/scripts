@@ -1,6 +1,7 @@
 import sys
 import glob
 
+# Update to "amberdata-marketdata"
 BUCKET = "amberdata-shar"
 
 def parse(suffix):
@@ -23,12 +24,8 @@ if __name__ == "__main__":
 
     DATA_DIR = sys.argv[1]
 
-    start = int(time.time())
-
     # sample file, DATA_DIR=/data4/shar/AMB-129/
     # /data4/shar/AMB-129/_pair=sol_usd/_date=2021-08-22/_hour=16/_exchange=kraken/part-00930-3273d399-96a3-457b-aed8-49a9ff5935de.c000.json
     file_paths = glob.glob(f"{DATA_DIR}/*/*/*/*/*")
 
     print_commands(DATA_DIR, file_paths)
-
-    end = int(time.time())
