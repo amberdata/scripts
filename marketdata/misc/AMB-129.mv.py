@@ -19,7 +19,7 @@ def print_commands(file_list_files):
                 break
             line = line.strip()
             (pair, dt, hr, file_name) = parse(line)
-            if not pair in ['ada_usd', 'btc_usd', 'eth_btc', 'eth_usd', 'eth_usdt', 'sol\_usd']:
+            if not pair in ['ada_usd', 'btc_usd', 'eth_btc', 'eth_usd', 'eth_usdt', 'sol_usd']:
                 break
             if dt < '2021-06-01' or dt > '2021-02-08':
                 break
