@@ -2,7 +2,7 @@ import sys
 import glob
 
 # Update to "amberdata-marketdata"
-BUCKET = "amberdata-shar"
+BUCKET = "amberdata-marketdata"
 
 def parse(suffix):
     parts = suffix.split("/")
@@ -16,7 +16,7 @@ def print_commands(OUTPUT_DIR, file_paths):
     for file_path in file_paths:
         suffix = file_path.replace(f"{OUTPUT_DIR}/", "")
         (pair, dt, hr, exchange) = parse(suffix)
-        output_s3_file = f"s3://{BUCKET}/trade/{pair}/{dt}/{hr}/{exchange}-2022-02-10@00-00-00"
+        output_s3_file = f"s3://{BUCKET}/trade/{pair}/{dt}/{hr}/{exchange}-2022-02-16@06-30-00_1.0.0"
         cmd = f"aws s3 cp {file_path} {output_s3_file}"
         print(cmd)
 
