@@ -14,7 +14,7 @@ def add_exchange(file_path):
     try:
         matches = list(re.finditer(r"((?:.(?!\/))+$)", file_path))
         file_name = matches[0].group()
-        return re.match(r"\/(.*?)-", file_name).group(1)
+        return re.match(r"\/(.*?)(?:(?:-[0-9]+)|(?:@))", file_name).group(1)
     except Exception as e:
         print(f"file: {file_path}", file=sys.stderr)
 
