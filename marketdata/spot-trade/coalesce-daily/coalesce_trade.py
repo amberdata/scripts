@@ -3,13 +3,26 @@ import glob
 import json
 import gzip
 import time
+import re
+
 
 def is_csv_gzip(_file_path):
     return _file_path.endswith("csv.gz")
 
+
+def add_exchange(file_path):
+    try:
+        matches = list(re.finditer(r"((?:.(?!\/))+$)", file_path))
+        file_name = matches[0].group()
+        return re.match(r"\/(.*?)-", file_name).group(1)
+    except Exception as e:
+        print(f"file: {file_path}", file=sys.stderr)
+
+
 def convert_line_from_csv_gz(_line, file_path):
     [timestamp, timestampNanoseconds, tradeId, price, size, isBuySide] = _line.decode('UTF-8').strip().split(',')
     return {
+        "exchange": add_exchange(file_path),
         "timestamp": int(timestamp),
         "timestampNanoseconds": int(timestampNanoseconds),
         "tradeId": int(tradeId),
