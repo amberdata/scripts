@@ -66,6 +66,12 @@ echo " Runtime: ${runtime}"; echo "";
 
 ####################################################################################
 
+# Fix some files format
+
+find "$DATA_DIR" ! -name '*\.gz' -type f -exec sed -i 's/}{/}\n{/g' {} +
+
+####################################################################################
+
 echo " COALESCING FILES..."
 
 start=`date +%s.%N`
